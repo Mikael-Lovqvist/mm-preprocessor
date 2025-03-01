@@ -2,6 +2,9 @@ import { Regex_Tokenizer, Regex_Rule } from "./regex-matcher.js";
 import { create_prefix_rules } from "./template-prefix-factory.js";
 import { run_in_scope } from "./function-utils.js";
 
+//NOTE: We are currently using esprima in order to separate code from comments (where we put template stuff).
+//		We may later want to make a version that is completely language agnostic instead.
+
 import * as fs from "fs";
 import * as esprima from "esprima";
 
@@ -31,7 +34,13 @@ export class Template {
 
 export function load_template_from_file(filename, encoding='utf8', template_scope={}) {
 	const source = fs.readFileSync(filename, encoding);
-	return new Template(parse_template(source, template_scope), {filename, encoding});
+	const template = new Template(null, {filename, encoding});
+	template.expression = parse_template(source, {
+		template: template,
+		...template_scope,
+	})
+	return template;
+
 }
 
 

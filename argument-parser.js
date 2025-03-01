@@ -1,12 +1,19 @@
 import { Regex_Rule, Regex_Matcher } from "./regex-matcher.js";
 
+//TODO - use a factory for these
+
 const dd_argument_matcher = new Regex_Matcher('double_dash_argument_matcher', [
 
-	new Regex_Rule(	/^hello$/,	(matcher) => {
+/*	new Regex_Rule(	/^hello$/,	(matcher) => {
 		console.log("Hello World!");
 		return true;
 	}),
+*/
 
+
+	new Regex_Rule(	/^(.*)$/,	(matcher, flag) => {
+		throw `Invalid double dash flag: "--${flag}"`
+	}),
 
 ]);
 
@@ -26,6 +33,16 @@ const sd_argument_matcher = new Regex_Matcher('single_dash_argument_matcher', [
 			matcher.context.definitions[name] = value;
 			return true
 		}
+	}),
+
+
+	new Regex_Rule(	/^o(.*)$/,	(matcher, filename) => {
+		matcher.context.output_file = filename;
+		return true;
+	}),
+
+	new Regex_Rule(	/^(.*)$/,	(matcher, flag) => {
+		throw `Invalid single dash flag: "-${flag}"`
 	}),
 
 
@@ -56,6 +73,7 @@ export function parse_arguments(pending_arguments) {
 	argument_matcher.context.pending_arguments = pending_arguments;
 	argument_matcher.context.positionals = [];
 	argument_matcher.context.definitions = {};
+	argument_matcher.context.output_file = '/dev/stdout';
 
 	while (pending_arguments.length) {
 		const arg = pending_arguments.shift();

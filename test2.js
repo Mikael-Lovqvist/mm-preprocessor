@@ -5,7 +5,7 @@ function test2() {
 	console.log('Hello World!');
 	// %% 		break;
 	// %% 	default:
-	console.log(/* %= DEFAULT_MESSAGE */);
+	console.log(/* %# DEFAULT_MESSAGE */);
 	// %% 		break;
 	// %% }
 

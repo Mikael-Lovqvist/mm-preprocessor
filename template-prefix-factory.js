@@ -1,5 +1,6 @@
 import { Regex_Rule } from "./regex-matcher.js";
 import { run_in_scope } from "./function-utils.js";
+import { inspect } from 'util';
 
 const factory_settings_by_name = {
 	// output_mode
@@ -14,6 +15,10 @@ const factory_settings_by_name = {
 	// variant
 	comment: {
 		output_formatter: (settings, text) => `_+=${JSON.stringify(settings.comment_formatter(settings, settings.main_formatter(settings, text)))};`,
+	},
+
+	debug_comment: {
+		output_formatter: (settings, text) => `_+=${JSON.stringify(settings.comment_formatter(settings, inspect(settings.main_formatter(settings, text), { depth: null, colors: false })))};`,
 	},
 
 	serialized_code: {
@@ -50,6 +55,10 @@ export const output_mode_table = [
 ]
 
 export const variant_table = [
+	[/\s*debug comment/,		'debug_comment'],		//	% debug comment
+	[/\s*dbg/,					'debug_comment'],		//	% dbg
+	[/\/[dD]/,					'debug_comment'],		//	%/D
+
 	[/\s*comment/,				'comment'],				//	% comment
 	[/\s*com/,					'comment'],				//	% com
 	[/\//,						'comment'],				//	%/
