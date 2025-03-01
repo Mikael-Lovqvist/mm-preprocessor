@@ -1,5 +1,6 @@
 import { parse_arguments } from "./argument-parser.js";
-import { load_template_from_file, run_in_scope } from "./template.js";
+import { load_template_from_file } from "./template.js";
+import { run_in_scope } from "./function-utils.js";
 
 
 export function main() {
@@ -10,7 +11,11 @@ export function main() {
 	//console.log('definitions', arg_context.definitions);
 
 
-	const template = load_template_from_file('test2.js');
+	const template_scope = {
+		version: '1.2.3',
+	};
+
+	const template = load_template_from_file('test4.js', 'utf8', template_scope);
 
 	const out = template.execute({
 		condition: false,
@@ -23,6 +28,7 @@ export function main() {
 			'coffee',
 			'bacon',
 		],
+
 
 	});
 

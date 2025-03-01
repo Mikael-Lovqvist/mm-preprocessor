@@ -1,5 +1,6 @@
 import { Regex_Tokenizer, Regex_Rule } from "./regex-matcher.js";
 import { create_prefix_rules } from "./template-prefix-factory.js";
+import { run_in_scope } from "./function-utils.js";
 
 import * as fs from "fs";
 import * as esprima from "esprima";
@@ -16,37 +17,26 @@ const comment_tokenizer = new Regex_Tokenizer('comment_tokenizer', [
 ]);
 
 
-export function run_in_scope(expression, scope={}) {
-	return new Function(...Object.keys(scope), expression)(...Object.values(scope));
-}
-
 export class Template {
 	constructor(expression, info) {
 		this.expression = expression;
 		Object.assign(this, info);
 	}
 
-	execute(scope, install_emit_utils_as) {
-
-		if (install_emit_utils_as) {
-			scope[install_emit_utils_as] = new emit_utils();
-		}
-
-/*		console.log('-- TEMPLATE BEGIN --');
-		console.log(this.expression);
-		console.log('-- TEMPLATE END --');*/
+	execute(scope) {
 		return run_in_scope(this.expression, scope);
 	}
 
 }
 
-export function load_template_from_file(filename, encoding='utf8') {
+export function load_template_from_file(filename, encoding='utf8', template_scope={}) {
 	const source = fs.readFileSync(filename, encoding);
-	return new Template(parse_template(source), {filename, encoding});
+	return new Template(parse_template(source, template_scope), {filename, encoding});
 }
 
 
-export function parse_template(source_code) {
+export function parse_template(source_code, template_scope={}) {
+	comment_tokenizer.context.template_scope = template_scope;
 	comment_tokenizer.context.pending_expression = '';
 
 	let previous = 0;

@@ -1,34 +1,35 @@
 import { Regex_Rule } from "./regex-matcher.js";
+import { run_in_scope } from "./function-utils.js";
 
 const factory_settings_by_name = {
 	// output_mode
 	output: {
-		input_filter: (settings, text) => text,
+		main_formatter: (settings, text) => text,
 	},
 	eval: {
-		input_filter: (settings, text) => JSON.stringify(text),
+		main_formatter: (settings, text) => run_in_scope(`return ${text};`, settings.template_scope),
 	},
 
 
 	// variant
 	comment: {
-		output_formatter: (settings, text) => `_+=${JSON.stringify(settings.comment_formatter(settings, text))};`,
+		output_formatter: (settings, text) => `_+=${JSON.stringify(settings.comment_formatter(settings, settings.main_formatter(settings, text)))};`,
 	},
 
 	serialized_code: {
-		output_formatter: (settings, text) => `_+='JSON.stringify('; _+=${text}; _+=')';`,
+		output_formatter: (settings, text) => `_+='JSON.stringify('; _+=${settings.main_formatter(settings, text)}; _+=')';`,
 	},
 
 	literal: {
-		output_formatter: (settings, text) => `_+=JSON.stringify(${text});`,
+		output_formatter: (settings, text) => `_+=JSON.stringify(${settings.main_formatter(settings, text)});`,
 	},
 
 	code: {
-		output_formatter: (settings, text) => `_+=${text};`,
+		output_formatter: (settings, text) => `_+=${settings.main_formatter(settings, text)};`,
 	},
 
 	macro: {
-		output_formatter: (settings, text) => text,
+		output_formatter: (settings, text) => settings.main_formatter(settings, text),
 	},
 
 
@@ -70,7 +71,7 @@ export const variant_table = [
 
 
 export const comment_pattern_table = [
-	[/\/\/\s*/,		/(.*)/y,	'single'],
+	[/\/\/\s*/,		/(.*)/y,		'single'],
 	[/\/\*\s*/, 	/(.*?)\*\//sy,	'multi'],
 ]
 
@@ -102,9 +103,9 @@ export function *create_prefix_rules() {
 
 		const factory_settings = {};
 
-		Object.assign(factory_settings, factory_settings_by_name[output_mode_name]);
-		Object.assign(factory_settings, factory_settings_by_name[variant_name]);
 		Object.assign(factory_settings, factory_settings_by_name[comment_name]);
+		Object.assign(factory_settings, factory_settings_by_name[variant_name]);
+		Object.assign(factory_settings, factory_settings_by_name[output_mode_name]);
 
 		if (count_capture_groups(pattern) != 1) {
 			throw `Expected exactly one capture group for expression "${output_mode_name}-${variant_name}-${comment_name}" (${pattern})`;
@@ -112,8 +113,10 @@ export function *create_prefix_rules() {
 
 		yield new Regex_Rule(pattern, (matcher, text) => {
 			//console.log(`MATCH FOR "${output_mode_name}-${variant_name}-${comment_name}" (${pattern}):`, JSON.stringify(text));
-			const prepared_text = factory_settings.input_filter(factory_settings, text);
-			const formatted_text = factory_settings.output_formatter(factory_settings, prepared_text);
+			//const prepared_text = factory_settings.input_filter(factory_settings, text);
+			factory_settings.template_scope = matcher.context.template_scope;
+
+			const formatted_text = factory_settings.output_formatter(factory_settings, text);
 			matcher.context.pending_expression += formatted_text;
 			return true;
 		})
