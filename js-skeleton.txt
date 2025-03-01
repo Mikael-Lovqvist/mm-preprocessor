@@ -1,0 +1,52 @@
+### package.json
+{
+  "name": "your-package-name",
+  "version": "0.1.0",
+  "description": "Your package description",
+  "bin": {
+    "your-command": "bin/cli.js"
+  },
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "keywords": [],
+  "author": "Your Name",
+  "license": "MIT"
+}
+
+### bin/cli.js
+#!/usr/bin/env node
+import { main } from "../index.js";
+main();
+
+### index.js
+export function main() {
+  console.log("Hello, world!");
+}
+
+### README.md
+# Your Package Name
+
+A brief description of what this package does.
+
+## Installation
+```sh
+npm install -g your-package-name
+```
+
+## Usage
+```sh
+your-command
+```
+
+## License
+MIT
+
+### .gitignore
+node_modules/
+dist/
+.DS_Store
