@@ -1,54 +1,13 @@
 import { Regex_Rule, Regex_Tokenizer } from "./regex-matcher.js";
+import { create_prefix_rules } from "./template-prefix-factory.js";
 
 import * as fs from "fs";
 import * as esprima from "esprima";
 
-const comment_tokenizer = new Regex_Tokenizer('comment_tokenizer', [
-	//TODO - maybe build these by factory to prevent a lot of drysoot (DRY/SSoT)
-
-	// Evaluate and output as code
-	new Regex_Rule(	/\/\/\s*%%=(.*)/y,	(matcher, code) => {
-		matcher.context.pending_expression += `_+=${code};`;
-		return true;
-	}),
-
-	new Regex_Rule(	/\/\*\s*%%=(.*)\*\//sy,	(matcher, code) => {
-		matcher.context.pending_expression += `_+=${code};`;
-		return true;
-	}),
-
-	// Output as comment
-	new Regex_Rule(	/\/\/\s*%%\/\/(.*)/y,	(matcher, comment) => {
-		const code = `//${comment}`;
-		matcher.context.pending_expression += `_+=${JSON.stringify(code)};`;
-		return true;
-	}),
-
-	new Regex_Rule(	/\/\*\s*%%\/\/(.*)\*\//sy,	(matcher, comment) => {
-		const code = `/*${comment}*/`;
-		matcher.context.pending_expression += `_+=${JSON.stringify(code)};`;
-		return true;
-	}),
 
 
-	// Output as code
-	new Regex_Rule(	/\/\/\s*%%(.*)/y,	(matcher, comment) => {
-		matcher.context.pending_expression += comment;
-		return true;
-	}),
+const comment_tokenizer = create_prefix_rules();
 
-	new Regex_Rule(	/\/\*\s*%%(.*)\*\//sy,	(matcher, comment) => {
-		matcher.context.pending_expression += comment;
-		return true;
-	}),
-
-	// Whitespace is output as is
-	new Regex_Rule(	/\s+/y,	(matcher) => {
-		matcher.context.pending_expression += `_+=${JSON.stringify(matcher.state.re_match[0])};`;
-		return true;
-	}),
-
-]);
 
 export class Template {
 	constructor(expression, info) {
@@ -56,7 +15,12 @@ export class Template {
 		Object.assign(this, info);
 	}
 
-	execute(scope) {
+	execute(scope, install_emit_utils_as) {
+
+		if (install_emit_utils_as) {
+			scope[install_emit_utils_as] = new emit_utils();
+		}
+
 		return new Function(...Object.keys(scope), this.expression)(...Object.values(scope));
 	}
 
@@ -80,6 +44,9 @@ export function parse_template(source_code) {
 		comment_tokenizer.feed(head);
 		comment_tokenizer.context.pending_expression += `_+=${JSON.stringify(source_code.slice(left, right))};`;	//Add code
 	}
+
+	const tail = source_code.slice(previous);
+	comment_tokenizer.feed(tail);
 
 	return `let _='';${comment_tokenizer.context.pending_expression}return _;`;
 }
