@@ -1,28 +1,83 @@
+import { Regex_Rule } from "./regex-matcher.js";
 
-export const prefix_table = [
+const factory_settings_by_name = {
+	// output_mode
+	output: {
+		input_filter: (settings, text) => text,
+	},
+	eval: {
+		input_filter: (settings, text) => JSON.stringify(text),
+	},
+
+
+	// variant
+	comment: {
+		output_formatter: (settings, text) => `_+=${JSON.stringify(settings.comment_formatter(settings, text))};`,
+	},
+
+	serialized_code: {
+		output_formatter: (settings, text) => `_+='JSON.stringify('; _+=${text}; _+=')';`,
+	},
+
+	literal: {
+		output_formatter: (settings, text) => `_+=JSON.stringify(${text});`,
+	},
+
+	code: {
+		output_formatter: (settings, text) => `_+=${text};`,
+	},
+
+	macro: {
+		output_formatter: (settings, text) => text,
+	},
+
+
+	// comment style
+	single: {
+		comment_formatter: (settings, text) => `// ${text}`,
+	},
+
+	multi: {
+		comment_formatter: (settings, text) => `/* ${text} */`,
+	},
+
+};
+
+export const output_mode_table = [
 	[/%/,				'output'],		//	%
 	[/@/,				'eval'],		// 	@
 ]
 
 export const variant_table = [
-	[/\s*comment/,		'comment'],		//	%comment
-	[/\s*com/,			'comment'],		//	%com
-	[/\//,				'comment'],		//	%#
+	[/\s*comment/,				'comment'],				//	% comment
+	[/\s*com/,					'comment'],				//	% com
+	[/\//,						'comment'],				//	%/
 
-	[/\s*literal/,		'literal'],		//	%literal
-	[/\s*lit/,			'literal'],		//	%lit
-	[/=/,				'literal'],		//	%=
+	[/\s*serialized\s+code/,	'serialized_code'],		//	% serialized code
+	[/\s*ser-code/,				'serialized_code'],		//	% ser-code
+	[/[sS]=/,					'serialized_code'],		//	%s=
 
-	[/\s*code/,			'code'],		//	%code
-	[/%/,				'code'],		//	%%
+	[/\s*literal/,				'literal'],				//	% literal
+	[/\s*lit/,					'literal'],				//	% lit
+	[/#/,						'literal'],				//	%#
+
+	[/\s*code/,					'code'],				//	% code
+	[/=/,						'code'],				//	%=
+
+	[/\s*macro/,				'macro'],				//	% macro
+	[/%/,						'macro'],				//	%%
 ]
 
 
 export const comment_pattern_table = [
 	[/\/\/\s*/,		/(.*)/y,	'single'],
-	[/\/\*\s*/, 	/(.*?)/sy,	'multi'],
+	[/\/\*\s*/, 	/(.*?)\*\//sy,	'multi'],
 ]
 
+
+function count_capture_groups(pattern) {
+	return new RegExp(`$(pattern.source)|`).exec().length - 1;
+}
 
 function concat_regular_expressions(...pattern_list) {
 	let pending_source = '';
@@ -38,52 +93,34 @@ function concat_regular_expressions(...pattern_list) {
 	return new RegExp(pending_source, String.prototype.concat(...pending_flags));
 }
 
-export function create_prefix_rules() {
+export function *create_prefix_rules() {
 
-	for (const [prefix_pattern, prefix_name] of prefix_table) {
+	for (const [output_mode_pattern, output_mode_name] of output_mode_table) {
 	 for (const [variant_pattern, variant_name] of variant_table) {
 	  for (const [comment_pattern_prefix, comment_pattern_suffix, comment_name] of comment_pattern_table) {
-		const pattern = concat_regular_expressions(comment_pattern_prefix, prefix_pattern, variant_pattern, comment_pattern_suffix);
-		console.log(prefix_name, variant_name, comment_name, pattern);
+		const pattern = concat_regular_expressions(comment_pattern_prefix, output_mode_pattern, variant_pattern, comment_pattern_suffix);
+
+		const factory_settings = {};
+
+		Object.assign(factory_settings, factory_settings_by_name[output_mode_name]);
+		Object.assign(factory_settings, factory_settings_by_name[variant_name]);
+		Object.assign(factory_settings, factory_settings_by_name[comment_name]);
+
+		if (count_capture_groups(pattern) != 1) {
+			throw `Expected exactly one capture group for expression "${output_mode_name}-${variant_name}-${comment_name}" (${pattern})`;
+		}
+
+		yield new Regex_Rule(pattern, (matcher, text) => {
+			//console.log(`MATCH FOR "${output_mode_name}-${variant_name}-${comment_name}" (${pattern}):`, JSON.stringify(text));
+			const prepared_text = factory_settings.input_filter(factory_settings, text);
+			const formatted_text = factory_settings.output_formatter(factory_settings, prepared_text);
+			matcher.context.pending_expression += formatted_text;
+			return true;
+		})
+
 	  }
 	 }
 	}
 }
 
 
-/* OUTPUT
-
-output comment single /\/\/\s*%\s*comment(.*)/y
-output comment multi /\/\*\s*%\s*comment(.*?)/sy
-output comment single /\/\/\s*%\s*com(.*)/y
-output comment multi /\/\*\s*%\s*com(.*?)/sy
-output comment single /\/\/\s*%\/(.*)/y
-output comment multi /\/\*\s*%\/(.*?)/sy
-output literal single /\/\/\s*%\s*literal(.*)/y
-output literal multi /\/\*\s*%\s*literal(.*?)/sy
-output literal single /\/\/\s*%\s*lit(.*)/y
-output literal multi /\/\*\s*%\s*lit(.*?)/sy
-output literal single /\/\/\s*%=(.*)/y
-output literal multi /\/\*\s*%=(.*?)/sy
-output code single /\/\/\s*%\s*code(.*)/y
-output code multi /\/\*\s*%\s*code(.*?)/sy
-output code single /\/\/\s*%%(.*)/y
-output code multi /\/\*\s*%%(.*?)/sy
-eval comment single /\/\/\s*@\s*comment(.*)/y
-eval comment multi /\/\*\s*@\s*comment(.*?)/sy
-eval comment single /\/\/\s*@\s*com(.*)/y
-eval comment multi /\/\*\s*@\s*com(.*?)/sy
-eval comment single /\/\/\s*@\/(.*)/y
-eval comment multi /\/\*\s*@\/(.*?)/sy
-eval literal single /\/\/\s*@\s*literal(.*)/y
-eval literal multi /\/\*\s*@\s*literal(.*?)/sy
-eval literal single /\/\/\s*@\s*lit(.*)/y
-eval literal multi /\/\*\s*@\s*lit(.*?)/sy
-eval literal single /\/\/\s*@=(.*)/y
-eval literal multi /\/\*\s*@=(.*?)/sy
-eval code single /\/\/\s*@\s*code(.*)/y
-eval code multi /\/\*\s*@\s*code(.*?)/sy
-eval code single /\/\/\s*@%(.*)/y
-eval code multi /\/\*\s*@%(.*?)/sy
-
-*/

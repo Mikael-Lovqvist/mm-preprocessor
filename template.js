@@ -1,13 +1,24 @@
-import { Regex_Rule, Regex_Tokenizer } from "./regex-matcher.js";
+import { Regex_Tokenizer, Regex_Rule } from "./regex-matcher.js";
 import { create_prefix_rules } from "./template-prefix-factory.js";
 
 import * as fs from "fs";
 import * as esprima from "esprima";
 
+const comment_tokenizer = new Regex_Tokenizer('comment_tokenizer', [
+
+	...create_prefix_rules(),
+
+	new Regex_Rule(	/\s+/y,	(matcher) => {
+		matcher.context.pending_expression += `_+=${JSON.stringify(matcher.state.re_match[0])};`;
+		return true;
+	}),
+
+]);
 
 
-const comment_tokenizer = create_prefix_rules();
-
+export function run_in_scope(expression, scope={}) {
+	return new Function(...Object.keys(scope), expression)(...Object.values(scope));
+}
 
 export class Template {
 	constructor(expression, info) {
@@ -21,7 +32,10 @@ export class Template {
 			scope[install_emit_utils_as] = new emit_utils();
 		}
 
-		return new Function(...Object.keys(scope), this.expression)(...Object.values(scope));
+/*		console.log('-- TEMPLATE BEGIN --');
+		console.log(this.expression);
+		console.log('-- TEMPLATE END --');*/
+		return run_in_scope(this.expression, scope);
 	}
 
 }
@@ -41,6 +55,7 @@ export function parse_template(source_code) {
 		const head = source_code.slice(previous, left);
 		previous = right;
 
+		//console.log('HEAD', JSON.stringify(head));
 		comment_tokenizer.feed(head);
 		comment_tokenizer.context.pending_expression += `_+=${JSON.stringify(source_code.slice(left, right))};`;	//Add code
 	}

@@ -5,13 +5,13 @@ function test2() {
 	console.log('Hello World!');
 	// %% 		break;
 	// %% 	default:
-	console.log(/* %%= DEFAULT_MESSAGE */);
+	console.log(/* %= DEFAULT_MESSAGE */);
 	// %% 		break;
 	// %% }
 
-	//%%// This comment stays
+	//%/ This comment stays
 
-	/* %%// This comment block
+	/*%/ This comment block
 	also stays */
 
 }
