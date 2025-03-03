@@ -1,11 +1,26 @@
 ## Installation
-```sh
-npm install -g mm-preprocess
+
+### Production version
+- Check out the latest latest tag
+```console
+$ git checkout tags/latest
+```
+- Link with npm
+```console
+# npm install -g .
+```
+
+### Development version
+- Check out the branch `text-version`
+- Link with npm
+
+```console
+# npm link -g
 ```
 
 ## Usage
-```sh
-mm-preprocess [-Dmacro[=defn]...] [--style=style] [--encoding=encoding] [input...] [output]
+```console
+$ mm-preprocess [-Dmacro[=defn]...] [--style=style] [--encoding=encoding] [input...] [output]
 ```
 
 ### Options
