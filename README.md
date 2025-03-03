@@ -9,6 +9,14 @@ mm-preprocess [-Dmacro[=defn]...] [--style=style] [--encoding=encoding] [input..
 ```
 
 ### Options
+#### `input`
+Filenames to use for input. If none are given, defaults to `/dev/stdin`.
+
+#### `output`
+Filename to use for output. If not given, defaults to `/dev/stdout`.
+> [!NOTE]
+> Currently there is no way to only specify output, you will have to manually specify `/dev/stdin` for input in that case.
+
 #### `-Dmacro[=defn]...`
 Put the value of `defn` in side `D[macro]`. `defn` defaults to `true` if not specified.
 > [!NOTE]
