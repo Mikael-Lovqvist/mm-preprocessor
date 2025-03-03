@@ -5,7 +5,7 @@ npm install -g mm-preprocess
 
 ## Usage
 ```sh
-mm-preprocess [-Dmacro[=defn]...] [--style=style] [--encoding=encoding] [input] [output]
+mm-preprocess [-Dmacro[=defn]...] [--style=style] [--encoding=encoding] [input...] [output]
 ```
 
 ### Options
