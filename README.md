@@ -5,7 +5,7 @@
 ```console
 $ git checkout tags/latest
 ```
-- Link with npm
+- Install with npm
 ```console
 # npm install -g .
 ```
