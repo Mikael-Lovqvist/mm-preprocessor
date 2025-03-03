@@ -1,23 +1,39 @@
-import { Regex_Tokenizer, Regex_Rule } from "./regex-matcher.js";
+import { Advanced_Regex_Tokenizer, Regex_Tokenizer, Regex_Rule } from "./regex-matcher.js";
 import { create_prefix_rules } from "./template-prefix-factory.js";
 import { run_in_scope } from "./function-utils.js";
 
-//NOTE: We are currently using esprima in order to separate code from comments (where we put template stuff).
-//		We may later want to make a version that is completely language agnostic instead.
-
 import * as fs from "fs";
-import * as esprima from "esprima";
 
-const comment_tokenizer = new Regex_Tokenizer('comment_tokenizer', [
+class Macro_Pattern {
+	constructor(name, pattern, format_lambda) {
+		Object.assign(this, {name, pattern, format_lambda});
+	}
+}
 
-	...create_prefix_rules(),
+class Default_Macro_Pattern {
+	constructor(name, format_lambda = (text) => text) {
+		Object.assign(this, {name, format_lambda});
+	}
+}
 
-	new Regex_Rule(	/\s+/y,	(matcher) => {
-		matcher.context.pending_expression += `_+=${JSON.stringify(matcher.state.re_match[0])};`;
-		return true;
-	}),
 
-]);
+const macro_pattern_factories = {
+	c_style: () => [
+		new Macro_Pattern('c-multi-line', /\/\*\s*%%(.*?)%%\s*\*\//s, 	(text) => `/*${text}*/`),
+		new Macro_Pattern('c-single-line', /\/\/\s*%%(.*?)\s*$/m, 		(text) => `//${text}`),
+	],
+
+	xml_style: () => [
+		new Macro_Pattern('xml-multi-line', /<!--\s*%%(.*?)%%\s*-->/s, 	(text) => `<!--${text}-->`),
+	],
+
+	bash_style: () => [
+
+		new Macro_Pattern('bash-multi-line', /^:\s*<<\s*'%%'\s*$(.*?)^\s*%%$/sm, 	(text) => `<!--${text}-->`),
+		new Macro_Pattern('bash-single-line', /#\s*%%(.*?)\s*$/m, 					(text) => `//${text}`),
+	],
+};
+
 
 
 export class Template {
@@ -32,10 +48,10 @@ export class Template {
 
 }
 
-export function load_template_from_file(filename, encoding='utf8', template_scope={}) {
+export function load_template_from_file(filename, ruleset, encoding='utf8', template_scope={}) {
 	const source = fs.readFileSync(filename, encoding);
 	const template = new Template(null, {filename, encoding});
-	template.expression = parse_template(source, {
+	template.expression = parse_template(source, ruleset, {
 		template: template,
 		...template_scope,
 	})
@@ -44,24 +60,52 @@ export function load_template_from_file(filename, encoding='utf8', template_scop
 }
 
 
-export function parse_template(source_code, template_scope={}) {
-	comment_tokenizer.context.template_scope = template_scope;
-	comment_tokenizer.context.pending_expression = '';
+//TODO - this should be built based on some ground truth + whatever style added
+const rule_formatters = {
+	'text': (tokenizer, text) => {
+		const context = tokenizer.context;
+		context.pending_expression += `emit(${JSON.stringify(text)});`;
+	},
 
-	let previous = 0;
-	for (const token of esprima.tokenize(source_code, {range: true})) {
-		const [left, right] = token.range;
-		const head = source_code.slice(previous, left);
-		previous = right;
+	'c-multi-line': (tokenizer, text) => {
+		const context = tokenizer.context;
+		context.pending_expression += text;
+	},
 
-		//console.log('HEAD', JSON.stringify(head));
-		comment_tokenizer.feed(head);
-		comment_tokenizer.context.pending_expression += `_+=${JSON.stringify(source_code.slice(left, right))};`;	//Add code
+	'xml-multi-line': (tokenizer, text) => {
+		const context = tokenizer.context;
+		context.pending_expression += text;
+	},
+
+	'bash-multi-line': (tokenizer, text) => {
+		const context = tokenizer.context;
+		context.pending_expression += text;
+	},
+
+};
+
+
+export function parse_template(source_code, ruleset, template_scope={}) {
+	const tokenizer = new Advanced_Regex_Tokenizer(
+		/* name */				'tokenizer',
+		/* rules */				macro_pattern_factories[ruleset](),
+		/* default_rule */		new Default_Macro_Pattern('text'),
+		/* context */			{
+			template_scope,
+			pending_expression: '',
+		},
+	);
+	//console.log(tokenizer.rules);
+
+	for (const token of tokenizer.feed(source_code)) {
+		const formatter = rule_formatters[token.rule.name]
+
+		if (!formatter) {
+			throw `No formatter for ${JSON.stringify(token.rule.name)}`;
+		}
+		formatter(tokenizer, ...token.value);
 	}
 
-	const tail = source_code.slice(previous);
-	comment_tokenizer.feed(tail);
-
-	return `let _='';${comment_tokenizer.context.pending_expression}return _;`;
+	return tokenizer.context.pending_expression;
 }
 

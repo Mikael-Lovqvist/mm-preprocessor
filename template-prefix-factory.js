@@ -89,19 +89,7 @@ function count_capture_groups(pattern) {
 	return new RegExp(`$(pattern.source)|`).exec().length - 1;
 }
 
-function concat_regular_expressions(...pattern_list) {
-	let pending_source = '';
-	const pending_flags = new Set();
 
-	for (const pattern of pattern_list) {
-		pending_source += pattern.source;
-		for (const flag of pattern.flags) {
-			pending_flags.add(flag);
-		}
-	}
-
-	return new RegExp(pending_source, String.prototype.concat(...pending_flags));
-}
 
 export function *create_prefix_rules() {
 

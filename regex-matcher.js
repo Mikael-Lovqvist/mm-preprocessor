@@ -1,6 +1,19 @@
 import { inspect } from 'util';
 
-//TODO - sunset this one?
+export function concat_regular_expressions(...pattern_list) {
+	let pending_source = '';
+	const pending_flags = new Set();
+
+	for (const pattern of pattern_list) {
+		pending_source += pattern.source;
+		for (const flag of pattern.flags) {
+			pending_flags.add(flag);
+		}
+	}
+
+	return new RegExp(pending_source, String.prototype.concat(...pending_flags));
+}
+
 export class Regex_Matcher {
 	constructor(name, rules=[], context={}, state={}) {
 		this.name = name;
@@ -15,7 +28,7 @@ export class Regex_Matcher {
 		for (const rule of this.rules) {
 			this.state.rule = rule;
 			const rule_match = rule.match(this, value);
-			if (rule_match) {
+			if (rule_match !== undefined) {
 				this.state.match = rule_match;
 				return rule_match;
 			}
@@ -24,6 +37,8 @@ export class Regex_Matcher {
 
 };
 
+
+//Sunset?
 
 export class Regex_Tokenizer {
 	constructor(name, rules=[], context={}, state={}) {
@@ -73,7 +88,7 @@ export class Regex_Rule {
 		if (re_match) {
 			matcher.state.re_match = re_match;
 			const sub_match = this.handler(matcher, ...re_match.slice(1));
-			if (sub_match) {
+			if (sub_match !== undefined) {
 				return sub_match;
 			}
 		}
@@ -92,6 +107,10 @@ export class Pattern_Match {
 		this.type = type;
 	}
 
+	get value() {
+		return this.match.slice(1);
+	}
+
 	get pending_index() {
 		return this.match.index + this.match[0].length;
 	}
@@ -100,12 +119,16 @@ export class Pattern_Match {
 
 
 export class Default_Match {
-	constructor(value, index, end_index, rule, type=null) {
-		this.value = value;
+	constructor(text, index, end_index, rule, type=null) {
+		this.text = text;
 		this.index = index;
 		this.end_index = end_index;
 		this.rule = rule;
 		this.type = type;
+	}
+
+	get value() {
+		return [this.text];
 	}
 
 	get pending_index() {

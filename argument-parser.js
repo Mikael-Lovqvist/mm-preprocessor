@@ -10,6 +10,16 @@ const dd_argument_matcher = new Regex_Matcher('double_dash_argument_matcher', [
 	}),
 */
 
+	new Regex_Rule(	/^style=(.*)$/,	(matcher, style) => {
+		matcher.context.style = style;
+		return true;
+	}),
+
+	new Regex_Rule(	/^encoding=(.*)$/,	(matcher, encoding) => {
+		matcher.context.encoding = encoding;
+		return true;
+	}),
+
 
 	new Regex_Rule(	/^(.*)$/,	(matcher, flag) => {
 		throw `Invalid double dash flag: "--${flag}"`
@@ -17,10 +27,17 @@ const dd_argument_matcher = new Regex_Matcher('double_dash_argument_matcher', [
 
 ]);
 
+//TODO - utilize some of our other better developed methods
+
 const sd_argument_matcher = new Regex_Matcher('single_dash_argument_matcher', [
 
 	new Regex_Rule(	/^D(.+?)=(.*)$/,	(matcher, name, value) => {
 		matcher.context.definitions[name] = value;
+		return true;
+	}),
+
+	new Regex_Rule(	/^D(.+?)$/,	(matcher, name) => {
+		matcher.context.definitions[name] = true;
 		return true;
 	}),
 
@@ -31,6 +48,14 @@ const sd_argument_matcher = new Regex_Matcher('single_dash_argument_matcher', [
 		if (dmatch) {
 			const [name, value] = dmatch.slice(1);
 			matcher.context.definitions[name] = value;
+			return true
+		}
+
+		const dmatch2 = definition.match(/^(.+?)$/);
+
+		if (dmatch2) {
+			const [name] = dmatch.slice(1);
+			matcher.context.definitions[name] = true;
 			return true
 		}
 	}),
@@ -74,6 +99,8 @@ export function parse_arguments(pending_arguments) {
 	argument_matcher.context.positionals = [];
 	argument_matcher.context.definitions = {};
 	argument_matcher.context.output_file = '/dev/stdout';
+	argument_matcher.context.style = 'c_style';
+	argument_matcher.context.encoding = 'utf8';
 
 	while (pending_arguments.length) {
 		const arg = pending_arguments.shift();

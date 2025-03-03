@@ -10,9 +10,6 @@
   "scripts": {
     "start": "node index.js"
   },
-  "dependencies": {
-    "esprima": "^4.0.1"
-  },
   "keywords": [],
   "author": "Mikael Lövqvist",
   "license": "CC0-1.0"
