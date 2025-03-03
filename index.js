@@ -163,7 +163,6 @@ export function main() {
 		D: arg_context.definitions,
 	};
 
-	//Object.assign(template_scope, arg_context.definitions);	//NOTE - we should probably check for conflicts and warn user
 	Object.assign(template_scope, bind_functions(context));
 
 	if (!arg_context.positionals.length) {

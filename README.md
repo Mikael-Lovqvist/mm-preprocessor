@@ -23,6 +23,34 @@ $ git checkout tags/latest
 $ mm-preprocess [-Dmacro[=defn]...] [--style=style] [--encoding=encoding] [input...] [output]
 ```
 
+### Macro specification
+#### c_style
+
+```c
+/* %% multiline macro block %% */
+```
+
+```c
+// %% single line macro
+```
+
+#### xml_style
+```xml
+<!-- %% multiline macro block %% -->
+```
+
+#### bash_style
+```bash
+: << '%%'
+multiline macro block
+%%
+```
+
+```bash
+# %% single line macro
+```
+
+
 ### Options
 #### `input`
 Filenames to use for input. If none are given, defaults to `/dev/stdin`.

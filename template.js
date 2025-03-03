@@ -20,7 +20,7 @@ class Default_Macro_Pattern {
 const macro_pattern_factories = {
 	c_style: () => [
 		new Macro_Pattern('c-multi-line', /\/\*\s*%%(.*?)%%\s*\*\//s, 	(text) => `/*${text}*/`),
-		new Macro_Pattern('c-single-line', /\/\/\s*%%(.*?)\s*$/m, 		(text) => `//${text}`),
+		new Macro_Pattern('c-single-line', /\/\/\s*%%(.*?)\s*$/m, 		(text) => `//${text}\n`),
 	],
 
 	xml_style: () => [
@@ -28,9 +28,8 @@ const macro_pattern_factories = {
 	],
 
 	bash_style: () => [
-
-		new Macro_Pattern('bash-multi-line', /^:\s*<<\s*'%%'\s*$(.*?)^\s*%%$/sm, 	(text) => `<!--${text}-->`),
-		new Macro_Pattern('bash-single-line', /#\s*%%(.*?)\s*$/m, 					(text) => `//${text}`),
+		new Macro_Pattern('bash-multi-line', /^:\s*<<\s*'%%'\s*$(.*?)^\s*%%$/sm, 	(text) => `: << '%%'\n${text}\n%%\n`),
+		new Macro_Pattern('bash-single-line', /#\s*%%(.*?)\s*$/m, 					(text) => `#${text}\n`),
 	],
 };
 
