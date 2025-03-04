@@ -1,24 +1,25 @@
+# MM-Preprocessor
+
+> [!NOTE]
+> Detta är intern dokumentation, om ändringar görs här som vi önskar dela med oss av så se till att denna filen eller andra delar specifika för Målerås Mekaniska AB inte följer med dessa förändringar.
+
 ## Installation
 
-### Production version
-- Check out the latest latest tag
+### Produktion
+Installera paketet globalt på din maskin
 ```console
-$ git checkout tags/latest
-```
-- Install with npm
-```console
-# npm install -g .
+# npm install -g git+http://192.168.0.36/MM/MM-Preprocessor.git#latest
 ```
 
-### Development version
-- Check out the branch `text-version`
-- Link with npm
+### Utvecklingsversion
+- Hämta ut grenen `text-version`
+- Använd npm link för att skapa en symlänk
 
 ```console
 # npm link -g
 ```
 
-## Usage
+## Användning
 ```console
 $ mm-preprocess [-Dmacro[=defn]...] [--style=style] [--encoding=encoding] [input...] [output]
 ```
