@@ -54,7 +54,7 @@ const sd_argument_matcher = new Regex_Matcher('single_dash_argument_matcher', [
 		const dmatch2 = definition.match(/^(.+?)$/);
 
 		if (dmatch2) {
-			const [name] = dmatch.slice(1);
+			const [name] = dmatch2.slice(1);
 			matcher.context.definitions[name] = true;
 			return true
 		}
