@@ -1,6 +1,6 @@
 {
   "name": "mm-preprocess",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Simple preprocessor",
   "bin": {
     "mm-preprocess": "bin/cli.js"
