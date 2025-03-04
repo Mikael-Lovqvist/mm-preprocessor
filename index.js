@@ -154,6 +154,8 @@ function bind_functions(context) {
 export function main() {
 	const arg_context = parse_arguments(process.argv.slice(2));
 
+	console.log(arg_context.positionals);
+
 	const context = {
 		arguments: arg_context,
 		pending_output: '',

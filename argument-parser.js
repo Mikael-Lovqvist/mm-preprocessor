@@ -36,7 +36,7 @@ const sd_argument_matcher = new Regex_Matcher('single_dash_argument_matcher', [
 		return true;
 	}),
 
-	new Regex_Rule(	/^D(.+?)$/,	(matcher, name) => {
+	new Regex_Rule(	/^D(.+)$/,	(matcher, name) => {
 		matcher.context.definitions[name] = true;
 		return true;
 	}),
@@ -61,8 +61,13 @@ const sd_argument_matcher = new Regex_Matcher('single_dash_argument_matcher', [
 	}),
 
 
-	new Regex_Rule(	/^o(.*)$/,	(matcher, filename) => {
+	new Regex_Rule(	/^o(.+)$/,	(matcher, filename) => {
 		matcher.context.output_file = filename;
+		return true;
+	}),
+
+	new Regex_Rule(	/^o$/,	(matcher, filename) => {
+		matcher.context.output_file = matcher.context.pending_arguments.shift();
 		return true;
 	}),
 
