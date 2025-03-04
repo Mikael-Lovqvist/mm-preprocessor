@@ -34,6 +34,11 @@ const macro_pattern_factories = {
 };
 
 
+//Shortcuts
+macro_pattern_factories.c = macro_pattern_factories.c_style;
+macro_pattern_factories.xml = macro_pattern_factories.xml_style;
+macro_pattern_factories.bash = macro_pattern_factories.bash_style;
+
 
 export class Template {
 	constructor(expression, info) {
