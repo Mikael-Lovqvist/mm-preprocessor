@@ -84,6 +84,10 @@ class Semantic_Version {
 
 	static from_string(string) {
 
+		if (!string) {
+			throw 'Semantic_Version.from_string requires a string as argument';
+		}
+
 		let matcher = semantic_version_matcher;
 		if (this.auto_strip) {
 			matcher = semantic_version_auto_strip_matcher;

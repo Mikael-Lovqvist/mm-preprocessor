@@ -15,6 +15,16 @@ const dd_argument_matcher = new Regex_Matcher('double_dash_argument_matcher', [
 	}),
 
 
+	new Regex_Rule(	/^style$/,	(matcher, style) => {
+		matcher.context.style = matcher.context.pending_arguments.shift();
+		return true;
+	}),
+
+	new Regex_Rule(	/^encoding$/,	(matcher, encoding) => {
+		matcher.context.encoding = matcher.context.pending_arguments.shift();
+		return true;
+	}),
+
 	new Regex_Rule(	/^(.*)$/,	(matcher, flag) => {
 		throw `Invalid double dash flag: "--${flag}"`
 	}),
