@@ -13,7 +13,7 @@ Install the package globally
 - Use npm link to create a global symlink
 
 ```console
-# npm link -g
+# npm link
 ```
 Now you can edit the package in place while also using it at the same time. Yolo!
 
