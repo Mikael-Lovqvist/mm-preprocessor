@@ -1,0 +1,24 @@
+{
+  "name": "mm-preprocess",
+  "version": "0.1.0",
+  "description": "Language agnostic preprocessor",
+  "bin": {
+    "mm-preprocess": "bin/cli.js"
+  },
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "Mikael Lövqvist",
+  "license": "CC0-1.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mikael-Lovqvist/mm-preprocessor"
+  },
+  "homepage": "to be filled in",
+  "bugs": {
+    "url": "https://github.com/Mikael-Lovqvist/mm-preprocessor/issues"
+  }
+}
