@@ -106,6 +106,8 @@ class Semantic_Version {
 function bind_functions(context) {
 	const result = {};
 
+	result.discard = () => {};
+
 	result.semver = (string) => Semantic_Version.from_string(string);	//TODO: Perhaps later from_expression
 	result.semver.config = Semantic_Version;
 
