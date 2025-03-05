@@ -3,8 +3,8 @@ import * as fs from "fs";
 
 
 export class Expect_Output {
-	constructor(program_arguments, output, strip=false, encoding='utf8') {
-		Object.assign(this, { program_arguments, output, strip, encoding });
+	constructor(title, program_arguments, output, strip=false, encoding='utf8') {
+		Object.assign(this, { title, program_arguments, output, strip, encoding });
 	}
 
 	run() {
@@ -27,19 +27,19 @@ export class Expect_Output {
 		}
 
 		if (this.strip) {
-			stdout = stdout.match(/^\s*(.*)\s*$/)[1];
+			stdout = stdout.match(/^\s*(.*?)\s*$/s)[1];
 		}
 
 		if (stdout != this.output) {
-			throw `Output mismatch for node ${this.program_arguments} → ${child.status} : ${stdout} != ${this.output}`
+			throw `Output mismatch for node ${this.program_arguments} → ${child.status} : ${JSON.stringify(stdout)} != ${JSON.stringify(this.output)}`
 		}
 	}
 
 };
 
 export class Expect_Crash {
-	constructor(program_arguments) {
-		Object.assign(this, { program_arguments });
+	constructor(title, program_arguments) {
+		Object.assign(this, { title, program_arguments });
 	}
 
 	run() {
@@ -67,7 +67,7 @@ export class Expect_Crash {
 
 export function Run_Tests(list_of_tests) {
 	for (const test of list_of_tests) {
-		console.log('Running', test);
+		console.log('Test:', test.title);
 		test.run();
 	}
 }

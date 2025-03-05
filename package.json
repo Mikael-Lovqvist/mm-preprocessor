@@ -8,7 +8,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "cd ./test-cases && node run-all.js"
   },
   "keywords": [],
   "author": "Mikael Lövqvist",

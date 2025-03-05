@@ -158,6 +158,7 @@ function bind_functions(context) {
 
 
 export function main() {
+
 	const arg_context = parse_arguments(process.argv.slice(2));
 
 	const context = {
@@ -170,6 +171,23 @@ export function main() {
 	};
 
 	Object.assign(template_scope, bind_functions(context));
+
+	//Run files that should be run first
+	for (const exec_file of arg_context.exec) {
+		const pre_exec_scope = {
+			...template_scope,
+			scope: template_scope,
+		};
+
+		run_in_scope(fs.readFileSync(exec_file), pre_exec_scope);
+	}
+
+
+	//Evaluate definitions that should be evaluated
+	for (const [name, value] of Object.entries(arg_context.eval_definitions)) {
+		template_scope.D[name] = run_in_scope('return ' + value, template_scope);
+		console.log(name, value);
+	}
 
 	if (!arg_context.positionals.length) {
 		arg_context.positionals.push('/dev/stdin');

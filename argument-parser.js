@@ -25,6 +25,12 @@ const dd_argument_matcher = new Regex_Matcher('double_dash_argument_matcher', [
 		return true;
 	}),
 
+	new Regex_Rule(	/^exec$/,	(matcher, style) => {
+		matcher.context.exec.push(matcher.context.pending_arguments.shift());
+		return true;
+	}),
+
+
 	new Regex_Rule(	/^(.*)$/,	(matcher, flag) => {
 		throw `Invalid double dash flag: "--${flag}"`
 	}),
@@ -62,6 +68,37 @@ const sd_argument_matcher = new Regex_Matcher('single_dash_argument_matcher', [
 			return true
 		}
 	}),
+
+	new Regex_Rule(	/^E(.+?)=(.*)$/,	(matcher, name, value) => {
+		matcher.context.eval_definitions[name] = value;
+		return true;
+	}),
+
+	new Regex_Rule(	/^E(.+)$/,	(matcher, name) => {
+		matcher.context.eval_definitions[name] = true;
+		return true;
+	}),
+
+	new Regex_Rule(	/^E$/,	(matcher) => {
+		const definition = matcher.context.pending_arguments.shift();
+		const dmatch = definition.match(/^(.+?)=(.*)$/);
+
+		if (dmatch) {
+			const [name, value] = dmatch.slice(1);
+			matcher.context.eval_definitions[name] = value;
+			return true
+		}
+
+		const dmatch2 = definition.match(/^(.+?)$/);
+
+		if (dmatch2) {
+			const [name] = dmatch2.slice(1);
+			matcher.context.eval_definitions[name] = true;
+			return true
+		}
+	}),
+
+
 
 
 	new Regex_Rule(	/^o(.+)$/,	(matcher, filename) => {
@@ -106,6 +143,8 @@ export function parse_arguments(pending_arguments) {
 	argument_matcher.context.pending_arguments = pending_arguments;
 	argument_matcher.context.positionals = [];
 	argument_matcher.context.definitions = {};
+	argument_matcher.context.eval_definitions = {};
+	argument_matcher.context.exec = [];
 	argument_matcher.context.output_file = '/dev/stdout';
 	argument_matcher.context.style = 'c_style';
 	argument_matcher.context.encoding = 'utf8';
