@@ -16,7 +16,7 @@ class Default_Macro_Pattern {
 }
 
 
-const macro_pattern_factories = {
+export const macro_pattern_factories = {
 	c_style: () => [
 		new Macro_Pattern('c-multi-line', /\/\*\s*%%(.*?)%%\s*\*\//s, 	(text) => `/*${text}*/`),
 		new Macro_Pattern('c-single-line', /\/\/\s*%%(.*?)\s*$/m, 		(text) => `//${text}\n`),
