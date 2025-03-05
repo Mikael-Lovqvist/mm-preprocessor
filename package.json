@@ -1,6 +1,6 @@
 {
   "name": "mm-preprocess",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Language agnostic preprocessor",
   "bin": {
     "mm-preprocess": "bin/cli.js"
