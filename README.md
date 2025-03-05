@@ -1,5 +1,7 @@
 # MM-Preprocessor
 
+![GitHub tag (latest)](https://img.shields.io/github/v/tag/Mikael-Lovqvist/mm-preprocessor)
+
 ## Installation
 
 ### Production version
