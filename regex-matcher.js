@@ -5,9 +5,14 @@ export function concat_regular_expressions(...pattern_list) {
 	const pending_flags = new Set();
 
 	for (const pattern of pattern_list) {
-		pending_source += pattern.source;
-		for (const flag of pattern.flags) {
-			pending_flags.add(flag);
+
+		if (pattern instanceof RegExp) {
+			pending_source += pattern.source;
+			for (const flag of pattern.flags) {
+				pending_flags.add(flag);
+			}
+		} else {
+			pending_source += pattern;
 		}
 	}
 
