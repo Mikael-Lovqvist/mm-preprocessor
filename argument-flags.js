@@ -63,13 +63,20 @@ class Action_Flag extends Flag {
 
 
 
+//NOTE - currently we must place this last in the rule chain since it will catch all
 class Positional_Flag extends Flag {
-	constructor(name, purpose, options={min_positional: 0, max_positional: 0, default: []}) {
+	constructor(name, purpose, options={min_positional: undefined, max_positional: undefined, default: []}) {
 		super();
 		Object.assign(this, {name, purpose, options});
 	}
 
 	register_parsing_rules(rule_list, argument_context) {
+
+		rule_list.flag.rules.push(new Regex_Rule(/^--?(.+)$/, (matcher, value) => {
+			throw `The flag '${matcher.state.value}' is not recognized. Issue --help for more information.`;
+			return true;
+		}));
+
 
 		rule_list.flag.rules.push(new Regex_Rule(/^(.+)$/, (matcher, value) => {
 
@@ -87,6 +94,45 @@ class Positional_Flag extends Flag {
 
 			return true;
 		}));
+	}
+}
+
+
+
+
+class Push_Flag extends Flag {
+	constructor(name, flags, purpose, options={min_positional: undefined, max_positional: undefined, default: []}) {
+		super();
+		Object.assign(this, {name, purpose, flags, options});
+	}
+
+	init(argument_context) {
+		if (this.options.default !== undefined) {
+			argument_context.arguments[this.name] = this.options.default;
+		} else {
+			argument_context.arguments[this.name] = [];
+		}
+	}
+
+	register_parsing_rules(rule_list, argument_context) {
+		for (const flag of this.flags) {
+			rule_list.flag.rules.push(new Regex_Rule(concat_regular_expressions(/^/, flag, /$/), (matcher) => {
+
+				const value = argument_context.pending.shift(0);
+				const options = this.options;
+				const positionals = argument_context.arguments[this.name];
+				positionals.push(value);
+
+				//TODO - we can only check min_positional in a final stage which we have not added support for yet
+
+				if ((options.max_positional !== undefined) && positionals.length > options.max_positional) {
+					const req = positionals.length ? positionals.length : 'none';
+					throw `The flag '${flag}' can be specified at most ${options.max_positional} times`;
+				}
+
+				return true;
+			}));
+		}
 	}
 }
 
@@ -169,6 +215,7 @@ class Definition_Flag extends Flag {
 			argument_context.arguments[this.name] = {};
 		}
 	}
+
 	register_parsing_rules(rule_list, argument_context) {
 
 		const flag_ref = this;
@@ -200,7 +247,7 @@ class Definition_Flag extends Flag {
 export const flag_list = [
 
 	new Action_Flag(		'help', 			['--help'], 	'Show help', 	{max_positional: 1, default: false}),
-	new Action_Flag(		'exec', 			['--exec'], 	'Pre-execute script before running eval_definitions', 	{min_positional: 1, max_positional: 1, default: false}),
+	new Push_Flag(			'exec', 			['--exec'], 	'Pre-execute script before running eval_definitions'),
 
 	new Definition_Flag(	'definitions', 		['-D'], 		'Specify definitions in context D'),
 	new Definition_Flag(	'eval_definitions', ['-E'], 		'Specify definitions in context D but evaluate them just before reading the input files'),
@@ -208,9 +255,9 @@ export const flag_list = [
 	new Settings_Flag(		'encoding',			['--encoding'], 'Set encoding for input and output files (TODO)', {default: 'utf8'}),
 	new Selection_Flag(		'style',			['--style'], 	(flag) => `Specify macro format style. Chose from: ${flag.format_choices()}`, macro_pattern_factories,  {auto_group: true, default: 'c_style'}),
 
-	new Action_Flag(		'output',			['--output', '-o'], 'Set output file', {default: '/dev/stdout', min_positional: 1, max_positional: 1}),
+	new Push_Flag(			'output',			['--output', '-o'], 'Set output file. If multiple ones are given, copies will be written.'),
 
-	new Positional_Flag(	'input',			'Specify input files', {default: []}),
+	new Positional_Flag(	'input',			'Specify input files'),
 
 ];
 

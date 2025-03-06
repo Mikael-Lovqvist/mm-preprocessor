@@ -189,19 +189,25 @@ export function main() {
 		console.log(name, value);
 	}
 
-	if (!arg_context.positionals.length) {
-		arg_context.positionals.push('/dev/stdin');
+	if (!arg_context.input.length) {
+		arg_context.input.push('/dev/stdin');
 	}
 
-	for (const input_file of arg_context.positionals) {
+	if (!arg_context.output.length) {
+		arg_context.output.push('/dev/stdout');
+	}
+
+	for (const input_file of arg_context.input) {
 		const template = load_template_from_file(input_file, arg_context.style, arg_context.encoding, template_scope);
 		template.execute(template_scope);
 
 	}
 
-	fs.writeFileSync(arg_context.output_file, context.pending_output, {
-		encoding: 'utf8',
-	});
+	for (const output_file of arg_context.output) {
+		fs.writeFileSync(output_file, context.pending_output, {
+			encoding: 'utf8',
+		});
+	}
 
 }
 
