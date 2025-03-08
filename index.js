@@ -177,8 +177,8 @@ export function main() {
 		const pre_exec_scope = {
 			...template_scope,
 			scope: template_scope,
+			context,
 		};
-
 		run_in_scope(fs.readFileSync(exec_file), pre_exec_scope);
 	}
 

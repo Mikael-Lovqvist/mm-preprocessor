@@ -75,6 +75,11 @@ const rule_formatters = {
 		context.pending_expression += text;
 	},
 
+	'c-single-line': (tokenizer, text) => {
+		const context = tokenizer.context;
+		context.pending_expression += text;
+	},
+
 	'xml-multi-line': (tokenizer, text) => {
 		const context = tokenizer.context;
 		context.pending_expression += text;
