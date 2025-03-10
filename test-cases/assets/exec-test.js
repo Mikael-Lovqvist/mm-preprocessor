@@ -1,6 +1,9 @@
+import { context } from "mm_preprocess/context.js";
 
-function emit_loud(line) {
+const emit = context.scope.emit;
+
+
+emit.loud = function emit_loud(line) {
 	emit.line(line.toUpperCase());
 }
 
-scope.emit.loud = emit_loud;
