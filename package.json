@@ -21,5 +21,8 @@
   "homepage": "https://mikael-lovqvist.github.io/mm-preprocessor/",
   "bugs": {
     "url": "https://github.com/Mikael-Lovqvist/mm-preprocessor/issues"
+  },
+  "dependencies": {
+    "uuid": "^11.1.0"
   }
 }

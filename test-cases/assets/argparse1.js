@@ -1,6 +1,6 @@
 
 
-import { flag_list, register_flags, parsing_rules } from "../../argument-flags.js";
+import { flag_list, register_flags, parsing_rules } from "../../lib/argument-flags.js";
 
 
 const argument_context = {
